@@ -21,11 +21,12 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    let userData = null; // Declare userData here globally.
+    let userData = null; // Declare userData here globally
 
+    // Firebase Auth state change listener
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        // Store user data when the user logs in.
+        // Store user data when the user logs in
         userData = {
           displayName: user.displayName,
           email: user.email,
@@ -34,13 +35,14 @@
         document.getElementById("login").style.display = "none";
         document.getElementById("consoleWindow").style.display = "block";
       } else {
-        // If the user logs out, reset the user data.
+        // If the user logs out, reset the user data
         userData = null;
         document.getElementById("login").style.display = "block";
         document.getElementById("consoleWindow").style.display = "none";
       }
     });
 
+    // Google login function
     window.googleLogin = async function () {
       try {
         await signInWithPopup(auth, provider);
