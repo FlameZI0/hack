@@ -47,12 +47,20 @@
 
     async function bruteForcePassword(password, length) {
       const output = document.getElementById("consoleOutput");
+      const id = `bruteLine_${Date.now()}`;
+      output.innerHTML += `<br><span id="${id}">Brute force: </span>`;
+      output.scrollTop = output.scrollHeight;
+    
       for (let i = 0; i < length; i++) {
         await new Promise(resolve => setTimeout(resolve, 200));
-        output.innerHTML += `<br>Trying: ${password.slice(0, i + 1)}`;
-        output.scrollTop = output.scrollHeight;
+        const span = document.getElementById(id);
+        if (span) {
+          span.innerText = `Brute force: ${password.slice(0, i + 1).padEnd(length, "_")}`;
+        }
       }
+    
       output.innerHTML += `<br>Brute force complete. Password guessed: ${password}`;
+      output.scrollTop = output.scrollHeight;
     }
 
     function resolveArgument(arg) {
