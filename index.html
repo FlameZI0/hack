@@ -1,184 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Fake Brute Force Terminal</title>
-  <script type="module">
-    // Firebase SDK imports
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyC7XFPp6V73xcqmv64-T2Zabq4vIfYEaVA",
-      authDomain: "efwes-89b5a.firebaseapp.com",
-      projectId: "efwes-89b5a",
-      storageBucket: "efwes-89b5a.appspot.com", // Fixed typo (was .app)
-      messagingSenderId: "734782298167",
-      appId: "1:734782298167:web:65e3ecfb034a772f05c7b2",
-      measurementId: "G-DGJW2LG783"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    // Wait for auth before showing anything
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        document.getElementById("login").style.display = "none";
-        document.getElementById("consoleWindow").style.display = "block";
-      } else {
-        document.getElementById("login").style.display = "block";
-        document.getElementById("consoleWindow").style.display = "none";
-      }
-    });
-
-    window.googleLogin = async function () {
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (err) {
-        alert("Login failed: " + err.message);
-      }
-    };
-  </script>
-
+  <meta charset="UTF-8" />
+  <title>Hack Console</title>
   <style>
     body {
-      font-family: "Courier New", monospace;
-      background-color: #0d0d0d;
-      color: #00ff88;
-      font-size: 18px;
-      text-align: center;
+      background-color: black;
+      color: lime;
+      font-family: monospace;
       padding: 20px;
-      overflow: hidden;
     }
-
-    #login {
-      margin-top: 200px;
-    }
-
-    #login button {
-      background-color: #111;
-      color: #00ff88;
-      border: 1px solid #00ff88;
-      padding: 12px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #consoleWindow {
-      display: none;
-      border: 1px solid #333;
-      background-color: #121212;
-      padding: 20px;
-      width: 500px;
-      height: 400px;
-      box-sizing: border-box;
-      box-shadow: inset 0 0 8px #000;
-      position: absolute;
-      top: 100px;
-      left: 100px;
-      cursor: default;
-      z-index: 1000;
-      resize: both;
-      overflow: auto;
-    }
-
-    #consoleHeader {
-      cursor: move;
-      font-size: 18px;
-      border-bottom: 1px solid #00ff88;
-      padding-bottom: 5px;
-      margin-bottom: 10px;
-    }
-
     #consoleOutput {
-      background-color: #000;
-      color: #00ff88;
-      height: 250px;
+      white-space: pre-wrap;
       overflow-y: auto;
+      height: 400px;
+      border: 1px solid lime;
       padding: 10px;
-      border: 1px solid #00ff88;
       margin-bottom: 10px;
-      text-align: left;
     }
-
     #consoleInput {
       width: 100%;
-      background-color: #111;
-      color: #00ff88;
-      border: 1px solid #00ff88;
-      padding: 8px;
-      font-family: "Courier New", monospace;
-      box-sizing: border-box;
+      padding: 10px;
+      background-color: black;
+      color: lime;
+      border: 1px solid lime;
+      font-family: monospace;
     }
   </style>
 </head>
 <body>
 
-  <div id="login">
-    <h2>Login Required</h2>
-    <button onclick="googleLogin()">Sign in with Google</button>
-  </div>
-
-  <div id="consoleWindow">
-    <div id="consoleHeader">Console</div>
-    <div id="consoleOutput">> Welcome to the brute force terminal.</div>
-    <input id="consoleInput" placeholder="Type a command..." onkeydown="handleConsoleInput(event)">
-  </div>
+  <div id="consoleOutput">Welcome to HACK CONSOLE v1.0</div>
+  <input type="text" id="consoleInput" placeholder="Type a command..." onkeydown="handleConsoleInput(event)">
 
   <script>
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    function getRandomInt(min, max) {
-      return Math.floor(Math.random() * (max - min)) + min;
-    }
+    const variables = {};
 
     function generateRandomString(length) {
-      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~';
+      const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       let result = '';
       for (let i = 0; i < length; i++) {
-        result += characters.charAt(getRandomInt(0, characters.length));
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       return result;
     }
 
-    async function bruteForcePassword(password, passLength) {
-      let lettersFound = Array(passLength).fill('_');
-      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~';
+    async function bruteForcePassword(password, length) {
       const output = document.getElementById("consoleOutput");
-      output.innerHTML += `<br>Starting brute force on password: ${password}`;
-      const startTime = Date.now();
-      
-      while (lettersFound.includes('_')) {
-        let randomGuess = [...lettersFound];
-        for (let i = 0; i < passLength; i++) {
-          if (randomGuess[i] === '_') {
-            randomGuess[i] = characters.charAt(getRandomInt(0, characters.length));
-          }
-        }
-
-        for (let i = 0; i < randomGuess.length; i++) {
-          if (randomGuess[i] === password[i]) {
-            lettersFound[i] = randomGuess[i];
-          }
-        }
-
-        output.innerHTML += `<br>Brute force: ${lettersFound.join('')}`;
+      for (let i = 0; i < length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+        output.innerHTML += `<br>Trying: ${password.slice(0, i + 1)}`;
         output.scrollTop = output.scrollHeight;
-        await sleep(10);
       }
+      output.innerHTML += `<br>Brute force complete. Password guessed: ${password}`;
+    }
 
-      const duration = (Date.now() - startTime) / 1000;
-      const minutes = Math.floor(duration / 60);
-      const seconds = Math.floor(duration % 60);
-      output.innerHTML += `<br>Password found: ${lettersFound.join('')}`;
-      output.innerHTML += `<br>Hack completed in ${minutes} minute(s) and ${seconds} second(s).`;
-      output.scrollTop = output.scrollHeight;
+    function resolveArgument(arg) {
+      if (/^".*"$/.test(arg)) {
+        return arg.slice(1, -1);
+      } else if (variables.hasOwnProperty(arg)) {
+        return variables[arg];
+      } else {
+        return `[undefined variable: ${arg}]`;
+      }
     }
 
     async function handleConsoleInput(event) {
@@ -192,15 +76,46 @@
           input.value = "";
 
           const bruteRegex = /^brute\s+(\S+)\s+(\S+)\s+\[(\d+)\]$/;
-          const match = command.match(bruteRegex);
+          const printRegex = /^print\s+\[(.+?)\]$/;
+          const setRegex = /^set\s+(\w+)\s*=\s*(.+)$/;
 
-          if (match) {
-            const user = match[1];
-            const website = match[2];
-            const passLength = parseInt(match[3]);
+          const bruteMatch = command.match(bruteRegex);
+          const printMatch = command.match(printRegex);
+          const setMatch = command.match(setRegex);
+
+          if (setMatch) {
+            const varName = setMatch[1];
+            let value = setMatch[2].trim();
+
+            if (/^".*"$/.test(value)) {
+              value = value.slice(1, -1);
+            } else if (!isNaN(value)) {
+              value = parseFloat(value);
+            }
+
+            variables[varName] = value;
+            output.innerHTML += `<br>Set ${varName} = ${value}`;
+          }
+
+          else if (bruteMatch) {
+            const rawUser = bruteMatch[1];
+            const rawSite = bruteMatch[2];
+            const passLength = parseInt(bruteMatch[3]);
+
+            const user = resolveArgument(rawUser);
+            const site = resolveArgument(rawSite);
             const password = generateRandomString(passLength);
+
+            output.innerHTML += `<br>brute forcing ${site} on acc ${user}`;
             await bruteForcePassword(password, passLength);
-          } else {
+          }
+
+          else if (printMatch) {
+            const arg = resolveArgument(printMatch[1]);
+            output.innerHTML += `<br>${arg}`;
+          }
+
+          else {
             output.innerHTML += `<br>Unknown command: ${command}`;
           }
 
