@@ -4,9 +4,11 @@
   <meta charset="UTF-8">
   <title>Hack Console with Firebase Login</title>
   <script type="module">
+    // Importing Firebase modules
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyC7XFPp6V73xcqmv64-T2Zabq4vIfYEaVA",
       authDomain: "efwes-89b5a.firebaseapp.com",
@@ -17,11 +19,12 @@
       measurementId: "G-DGJW2LG783"
     };
 
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    let userData = null; // Declare userData here globally
+    let userData = null; // Global variable to store user data
 
     // Firebase Auth state change listener
     onAuthStateChanged(auth, (user) => {
@@ -50,6 +53,105 @@
         alert("Login failed: " + err.message);
       }
     };
+
+    // Variables storage for commands
+    const variables = {};
+
+    // Function to generate random strings (for brute force simulation)
+    function generateRandomString(length) {
+      const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let result = '';
+      for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+
+    // Function to brute force a password
+    async function bruteForcePassword(password, length) {
+      const output = document.getElementById("consoleOutput");
+      const id = `bruteLine_${Date.now()}`;
+      output.innerHTML += `<br><span id="${id}">Brute force: </span>`;
+      output.scrollTop = output.scrollHeight;
+      for (let i = 0; i < length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+        const span = document.getElementById(id);
+        if (span) {
+          span.innerText = `Brute force: ${password.slice(0, i + 1).padEnd(length, "_")}`;
+        }
+      }
+      output.innerHTML += `<br>Brute force complete. Password guessed: ${password}`;
+      output.scrollTop = output.scrollHeight;
+    }
+
+    // Function to resolve arguments, checking variables or raw values
+    function resolveArgument(arg) {
+      if (/^".*"$/.test(arg)) {
+        return arg.slice(1, -1); // Removing quotes
+      } else if (variables.hasOwnProperty(arg)) {
+        return variables[arg]; // Return value of variable
+      } else {
+        return `[undefined variable: ${arg}]`; // Undefined variable
+      }
+    }
+
+    // Handle console input and parse commands
+    async function handleConsoleInput(event) {
+      if (event.key === "Enter") {
+        const input = document.getElementById("consoleInput");
+        const output = document.getElementById("consoleOutput");
+        const command = input.value.trim();
+        if (command) {
+          output.innerHTML += `\n> ${command}`;
+          input.value = "";
+          const bruteRegex = /^brute\s+(\S+)\s+(\S+)\s+\[(\d+)\]$/;
+          const printRegex = /^print\s+\[(.+?)\]$/;
+          const setRegex = /^set\s+(\w+)\s*=\s*(.+)$/;
+          const getUserRegex = /^get_user$/;
+
+          const bruteMatch = command.match(bruteRegex);
+          const printMatch = command.match(printRegex);
+          const setMatch = command.match(setRegex);
+          const getUserMatch = command.match(getUserRegex);
+
+          if (setMatch) {
+            const varName = setMatch[1];
+            let value = setMatch[2].trim();
+            if (/^".*"$/.test(value)) {
+              value = value.slice(1, -1); // Removing quotes for strings
+            } else if (!isNaN(value)) {
+              value = parseFloat(value); // Convert to number if possible
+            }
+            variables[varName] = value;
+            output.innerHTML += `\nSet ${varName} = ${value}`;
+          } else if (bruteMatch) {
+            const rawUser = bruteMatch[1];
+            const rawSite = bruteMatch[2];
+            const passLength = parseInt(bruteMatch[3]);
+            const user = resolveArgument(rawUser);
+            const site = resolveArgument(rawSite);
+            const password = generateRandomString(passLength);
+            output.innerHTML += `\nBrute forcing ${site} on acc ${user}`;
+            await bruteForcePassword(password, passLength);
+          } else if (printMatch) {
+            const arg = resolveArgument(printMatch[1]);
+            output.innerHTML += `\n${arg}`;
+          } else if (getUserMatch) {
+            // Show user data if logged in
+            if (userData) {
+              output.innerHTML += `\nDisplay Name: ${userData.displayName}`;
+              output.innerHTML += `\nEmail: ${userData.email}`;
+              output.innerHTML += `\nProfile Picture: ${userData.photoURL}`;
+            } else {
+              output.innerHTML += `\nUser not logged in.`;
+            }
+          } else {
+            output.innerHTML += `\nUnknown command: ${command}`;
+          }
+          output.scrollTop = output.scrollHeight;
+        }
+      }
+    }
   </script>
   <style>
     body {
@@ -128,99 +230,5 @@
     <div id="consoleOutput">> Welcome to the brute force terminal.</div>
     <input id="consoleInput" placeholder="Type a command..." onkeydown="handleConsoleInput(event)">
   </div>
-  <script>
-    const variables = {};
-
-    function generateRandomString(length) {
-      const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let result = '';
-      for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return result;
-    }
-
-    async function bruteForcePassword(password, length) {
-      const output = document.getElementById("consoleOutput");
-      const id = `bruteLine_${Date.now()}`;
-      output.innerHTML += `<br><span id="${id}">Brute force: </span>`;
-      output.scrollTop = output.scrollHeight;
-      for (let i = 0; i < length; i++) {
-        await new Promise(resolve => setTimeout(resolve, 200));
-        const span = document.getElementById(id);
-        if (span) {
-          span.innerText = `Brute force: ${password.slice(0, i + 1).padEnd(length, "_")}`;
-        }
-      }
-      output.innerHTML += `<br>Brute force complete. Password guessed: ${password}`;
-      output.scrollTop = output.scrollHeight;
-    }
-
-    function resolveArgument(arg) {
-      if (/^".*"$/.test(arg)) {
-        return arg.slice(1, -1);
-      } else if (variables.hasOwnProperty(arg)) {
-        return variables[arg];
-      } else {
-        return `[undefined variable: ${arg}]`;
-      }
-    }
-
-    async function handleConsoleInput(event) {
-      if (event.key === "Enter") {
-        const input = document.getElementById("consoleInput");
-        const output = document.getElementById("consoleOutput");
-        const command = input.value.trim();
-        if (command) {
-          output.innerHTML += `\n> ${command}`;
-          input.value = "";
-          const bruteRegex = /^brute\s+(\S+)\s+(\S+)\s+\[(\d+)\]$/;
-          const printRegex = /^print\s+\[(.+?)\]$/;
-          const setRegex = /^set\s+(\w+)\s*=\s*(.+)$/;
-          const getUserRegex = /^get_user$/;
-
-          const bruteMatch = command.match(bruteRegex);
-          const printMatch = command.match(printRegex);
-          const setMatch = command.match(setRegex);
-          const getUserMatch = command.match(getUserRegex);
-
-          if (setMatch) {
-            const varName = setMatch[1];
-            let value = setMatch[2].trim();
-            if (/^".*"$/.test(value)) {
-              value = value.slice(1, -1);
-            } else if (!isNaN(value)) {
-              value = parseFloat(value);
-            }
-            variables[varName] = value;
-            output.innerHTML += `\nSet ${varName} = ${value}`;
-          } else if (bruteMatch) {
-            const rawUser = bruteMatch[1];
-            const rawSite = bruteMatch[2];
-            const passLength = parseInt(bruteMatch[3]);
-            const user = resolveArgument(rawUser);
-            const site = resolveArgument(rawSite);
-            const password = generateRandomString(passLength);
-            output.innerHTML += `\nBrute forcing ${site} on acc ${user}`;
-            await bruteForcePassword(password, passLength);
-          } else if (printMatch) {
-            const arg = resolveArgument(printMatch[1]);
-            output.innerHTML += `\n${arg}`;
-          } else if (getUserMatch) {
-            if (userData) {
-              output.innerHTML += `\nDisplay Name: ${userData.displayName}`;
-              output.innerHTML += `\nEmail: ${userData.email}`;
-              output.innerHTML += `\nProfile Picture: ${userData.photoURL}`;
-            } else {
-              output.innerHTML += `\nUser not logged in.`;
-            }
-          } else {
-            output.innerHTML += `\nUnknown command: ${command}`;
-          }
-          output.scrollTop = output.scrollHeight;
-        }
-      }
-    }
-  </script>
 </body>
 </html>
