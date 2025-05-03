@@ -21,8 +21,15 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
+    let userData = null;
+
     onAuthStateChanged(auth, (user) => {
       if (user) {
+        userData = {
+          displayName: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL
+        };
         document.getElementById("login").style.display = "none";
         document.getElementById("consoleWindow").style.display = "block";
       } else {
@@ -118,6 +125,7 @@
   </div>
   <script>
     const variables = {};
+
     function generateRandomString(length) {
       const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       let result = '';
@@ -126,6 +134,7 @@
       }
       return result;
     }
+
     async function bruteForcePassword(password, length) {
       const output = document.getElementById("consoleOutput");
       const id = `bruteLine_${Date.now()}`;
@@ -141,6 +150,7 @@
       output.innerHTML += `<br>Brute force complete. Password guessed: ${password}`;
       output.scrollTop = output.scrollHeight;
     }
+
     function resolveArgument(arg) {
       if (/^".*"$/.test(arg)) {
         return arg.slice(1, -1);
@@ -150,6 +160,7 @@
         return `[undefined variable: ${arg}]`;
       }
     }
+
     async function handleConsoleInput(event) {
       if (event.key === "Enter") {
         const input = document.getElementById("consoleInput");
@@ -161,9 +172,13 @@
           const bruteRegex = /^brute\s+(\S+)\s+(\S+)\s+\[(\d+)\]$/;
           const printRegex = /^print\s+\[(.+?)\]$/;
           const setRegex = /^set\s+(\w+)\s*=\s*(.+)$/;
+          const getUserRegex = /^get_user$/;
+
           const bruteMatch = command.match(bruteRegex);
           const printMatch = command.match(printRegex);
           const setMatch = command.match(setRegex);
+          const getUserMatch = command.match(getUserRegex);
+
           if (setMatch) {
             const varName = setMatch[1];
             let value = setMatch[2].trim();
@@ -186,6 +201,14 @@
           } else if (printMatch) {
             const arg = resolveArgument(printMatch[1]);
             output.innerHTML += `\n${arg}`;
+          } else if (getUserMatch) {
+            if (userData) {
+              output.innerHTML += `\nDisplay Name: ${userData.displayName}`;
+              output.innerHTML += `\nEmail: ${userData.email}`;
+              output.innerHTML += `\nProfile Picture: ${userData.photoURL}`;
+            } else {
+              output.innerHTML += `\nUser not logged in.`;
+            }
           } else {
             output.innerHTML += `\nUnknown command: ${command}`;
           }
